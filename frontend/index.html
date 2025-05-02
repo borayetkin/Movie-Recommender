@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Recommender</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <!-- Vue.js development CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <div class="header-content">
+          <div class="logo">
+            <i class="fas fa-film logo-icon"></i>
+            <span class="logo-text"
+              >Movie<span class="highlight">Magic</span></span
+            >
+          </div>
+          <nav class="main-nav">
+            <ul>
+              <li><a href="#" class="active">Home</a></li>
+              <li><a href="#" class="discover-link">Discover</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <main>
+        <section
+          class="hero-section"
+          :style="heroBackgroundStyle"
+          v-show="!showSearchResults"
+        >
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <h1><span class="highlight">Discover</span> Your Perfect Movie</h1>
+            <p class="hero-subtitle">
+              Personalized recommendations just for you
+            </p>
+            <div class="search-container">
+              <div class="search-wrapper">
+                <input
+                  type="text"
+                  v-model="searchQuery"
+                  placeholder="Search for movies..."
+                  @keyup.enter="handleSearch"
+                />
+                <button id="searchButton" @click="handleSearch">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="searchResults"
+          class="movie-section"
+          v-show="showSearchResults"
+        >
+          <div
+            class="search-container search-container-top"
+            v-show="showSearchResults"
+          >
+            <div class="search-wrapper">
+              <input
+                type="text"
+                v-model="searchQuery"
+                placeholder="Search for movies..."
+                @keyup.enter="handleSearch"
+              />
+              <button id="searchButton" @click="handleSearch">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+          <div class="section-header">
+            <h2>Search Results</h2>
+            <button class="close-search" @click="clearSearch">
+              Clear Results
+            </button>
+          </div>
+          <div v-if="isSearchLoading" class="spinner-container">
+            <div class="spinner"></div>
+          </div>
+          <div
+            v-else-if="searchResults.length === 0 && showSearchResults"
+            class="no-results"
+          >
+            <i class="fas fa-film" style="font-size: 3rem; opacity: 0.3"></i>
+            <p>No movies found for "{{ searchQuery }}"</p>
+            <p class="sub-text">Try a different search term</p>
+          </div>
+          <div v-else class="movie-grid">
+            <movie-card
+              v-for="movie in searchResults"
+              :key="movie.id"
+              :movie="movie"
+              @click="showMovieDetails(movie.id)"
+            ></movie-card>
+          </div>
+        </section>
+
+        <section
+          id="popularMovies"
+          class="movie-section"
+          v-show="!showSearchResults"
+        >
+          <div class="section-header">
+            <h2>Popular Movies</h2>
+          </div>
+          <div
+            v-if="popularMovies.length === 0 && !isLoadingMore"
+            class="no-results"
+          >
+            <i class="fas fa-film" style="font-size: 3rem; opacity: 0.3"></i>
+            <p>Failed to load popular movies</p>
+            <button @click="loadPopularMovies" class="retry-btn">
+              Try Again
+            </button>
+          </div>
+          <div v-else class="movie-grid">
+            <movie-card
+              v-for="movie in popularMovies"
+              :key="movie.id"
+              :movie="movie"
+              @click="showMovieDetails(movie.id)"
+            ></movie-card>
+          </div>
+
+          <div class="pagination-container" v-if="popularMovies.length > 0">
+            <div class="pagination">
+              <button
+                class="page-btn"
+                :disabled="currentPage === 1"
+                @click="goToPage(currentPage - 1)"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+
+              <button
+                v-for="page in paginationPages"
+                :key="page"
+                @click="goToPage(page)"
+                class="page-btn"
+                :class="{ active: currentPage === page }"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="page-btn"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(currentPage + 1)"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="loadingIndicator"
+            class="loading-indicator"
+            v-if="isLoadingMore"
+            ref="loadingIndicator"
+          >
+            <div class="spinner"></div>
+            <p>Loading movies...</p>
+          </div>
+          <div v-else-if="loadingError" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>Error loading movies</p>
+            <button @click="retryLoading" class="retry-btn">Try Again</button>
+          </div>
+        </section>
+      </main>
+
+      <div
+        id="movieModal"
+        class="modal"
+        :class="{ active: selectedMovie }"
+        v-if="selectedMovie"
+        @click.self="closeModal"
+      >
+        <div class="modal-content">
+          <span class="close" @click="closeModal">&times;</span>
+          <div v-if="isMovieDetailsLoading" class="spinner-container">
+            <div class="spinner"></div>
+          </div>
+          <div v-else-if="movieDetailsError" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>Error loading movie details</p>
+          </div>
+          <div v-else class="movie-details">
+            <div
+              class="movie-details-backdrop"
+              :style="selectedMovieBackdrop"
+            ></div>
+            <div class="movie-details-content">
+              <img
+                :src="selectedMoviePoster"
+                :alt="selectedMovie.title"
+                class="movie-details-poster"
+                @error="handleImageError"
+              />
+              <div class="movie-details-info">
+                <h1 class="movie-details-title">{{ selectedMovie.title }}</h1>
+                <p class="movie-details-tagline">
+                  {{ selectedMovie.tagline || '' }}
+                </p>
+
+                <div class="movie-details-rating">
+                  <i class="fas fa-star"></i>
+                  <span>{{ formatRating(selectedMovie.vote_average) }}</span>
+                </div>
+
+                <div class="movie-details-meta">
+                  <span
+                    ><i class="far fa-calendar-alt"></i> {{
+                    formatDate(selectedMovie.release_date) }}</span
+                  >
+                  <span
+                    ><i class="fas fa-clock"></i> {{ selectedMovie.runtime ||
+                    '?' }} min</span
+                  >
+                  <span
+                    ><i class="fas fa-film"></i> {{
+                    formatGenres(selectedMovie.genres) }}</span
+                  >
+                </div>
+
+                <p class="movie-details-overview">
+                  {{ selectedMovie.overview || 'No overview available.' }}
+                </p>
+
+                <div class="movie-details-actions">
+                  <button class="action-btn primary">
+                    <i class="fas fa-play"></i> Watch Trailer
+                  </button>
+                  <button class="action-btn secondary">
+                    <i class="fas fa-plus"></i> Add to Watchlist
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="footer-content">
+          <div class="footer-bottom">
+            <div class="footer-logo">
+              <i class="fas fa-film"></i>
+              <span class="logo-text"
+                >Movie<span class="highlight">Magic</span></span
+              >
+            </div>
+            <p>© 2023 MovieMagic Recommender | Data provided by TMDB</p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-github"></i></a>
+              <a href="#"><i class="fab fa-linkedin"></i></a>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Import Vue components with ES modules -->
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>

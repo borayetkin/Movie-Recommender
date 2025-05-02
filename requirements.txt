@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+polars
+numpy
+scikit-learn
+httpx
+python-dotenv
+pydantic
