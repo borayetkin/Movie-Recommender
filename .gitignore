@@ -49,4 +49,7 @@ htmlcov/
 
 # Misc
 logs/
-*.log 
+*.log
+
+# Generated static files (they're copied from frontend to app/static)
+app/static/ 
