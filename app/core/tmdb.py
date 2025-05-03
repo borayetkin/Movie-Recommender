@@ -34,8 +34,15 @@ class TMDBClient:
         return self._transform_movies(data["results"])
     
     async def get_movie_details(self, movie_id):
-        """Get detailed information about a movie."""
-        return await self._make_request(f"/movie/{movie_id}")
+        """Get detailed information about a movie, including credits."""
+        return await self._make_request(
+            f"/movie/{movie_id}",
+            {"append_to_response": "credits"}
+        )
+    
+    async def get_movie_credits(self, movie_id):
+        """Get movie credits from TMDB."""
+        return await self._make_request(f"/movie/{movie_id}/credits")
     
     async def search_movies(self, query, page=1):
         """Search for movies by title."""
