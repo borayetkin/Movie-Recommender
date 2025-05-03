@@ -273,14 +273,14 @@ header {
   width: 100%;
   max-width: 700px;
   margin: 0 auto;
-  transition: all 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   will-change: transform, opacity;
 }
 
 .search-container.searching {
   transform: translateY(-10px) scale(0.98);
   opacity: 0.9;
-  transition: all 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .search-container.results {
@@ -303,12 +303,6 @@ header {
     transform: translateY(15px);
     opacity: 0;
   }
-  20% {
-    opacity: 0.2;
-  }
-  60% {
-    opacity: 0.6;
-  }
   100% {
     transform: translateY(0);
     opacity: 1;
@@ -319,12 +313,6 @@ header {
   0% {
     transform: translateY(-15px);
     opacity: 0;
-  }
-  20% {
-    opacity: 0.2;
-  }
-  60% {
-    opacity: 0.6;
   }
   100% {
     transform: translateY(0);
@@ -483,6 +471,8 @@ main {
   gap: 2rem;
   margin: 0 auto;
   align-items: flex-start;
+  opacity: 0;
+  animation: fadeIn 0.4s ease-in forwards;
 }
 
 .movie-carousel {
@@ -514,7 +504,7 @@ main {
   background-color: var(--secondary-color);
   border-radius: var(--border-radius);
   overflow: hidden;
-  transition: all var(--transition-speed);
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
   cursor: pointer;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   position: relative;
@@ -527,6 +517,9 @@ main {
   will-change: transform;
   outline: none;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  animation: fadeIn 0.5s ease-in forwards;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .movie-card:focus {
@@ -540,7 +533,7 @@ main {
 }
 
 .movie-card:hover {
-  transform: translateY(-1px) scale(1.01);
+  transform: translateY(-3px) scale(1.01);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 10px rgba(124, 93, 250, 0.2);
   z-index: 1;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -566,8 +559,11 @@ main {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: all var(--transition-speed);
+  transition: transform 0.3s ease-out, filter 0.3s ease-out;
   filter: brightness(0.98);
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .movie-card:hover .movie-poster {
@@ -577,7 +573,7 @@ main {
 
 .movie-info {
   background: rgba(0, 0, 0, 0.4);
-  padding: 0.3rem 1rem;
+  padding: 0.15rem 0.7rem;
   position: absolute;
   bottom: 0;
   left: 0;
@@ -587,36 +583,44 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  height: auto;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.9),
+    rgba(0, 0, 0, 0.7),
+    transparent
+  );
 }
 
 .movie-title {
   font-weight: 600;
-  font-size: 1.2rem;
+  font-size: 1rem;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
   line-height: 1.2;
   letter-spacing: 0.3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 0.3rem;
-  margin-top: 0.5rem;
+  margin-bottom: 0.15rem;
+  margin-top: 0.2rem;
 }
 
 .movie-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 0.4rem;
 }
 
 .movie-year {
-  font-size: 0.9rem;
-  color: var(--text-color);
+  font-size: 0.85rem;
+  color: #9fa3a9;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
 }
 
 .movie-rating {
-  color: var(--text-color);
-  font-size: 0.9rem;
+  color: #ffffff;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   gap: 0.3rem;
@@ -626,9 +630,9 @@ main {
 }
 
 .movie-rating i {
-  color: #e6c54d;
+  color: #e6b800 !important;
   font-size: 0.9rem;
-  text-shadow: 0 0 8px rgba(230, 197, 77, 0.4);
+  text-shadow: 0 0 4px rgba(230, 184, 0, 0.2);
 }
 
 .movie-description {
@@ -742,41 +746,45 @@ main {
   padding: 0.7rem 1.5rem;
 }
 
-/* Modal */
+/* Movie Detail Modal */
 .modal {
-  display: none;
+  display: flex;
   position: fixed;
-  top: 0;
+  z-index: 100;
   left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.85);
-  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
   backdrop-filter: blur(5px);
-}
-
-.modal.active {
-  display: block;
+  will-change: opacity;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .modal-content {
   position: relative;
   background-color: var(--secondary-color);
-  margin: 5% auto;
-  padding: 0;
   width: 90%;
   max-width: 1000px;
+  height: 80vh;
   border-radius: var(--border-radius);
-  overflow: hidden;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-  animation: modalFadeIn 0.3s ease;
+  animation: modalFadeIn 0.25s ease-out;
   border: 1px solid rgba(255, 255, 255, 0.05);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  will-change: transform, opacity;
 }
 
 @keyframes modalFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-30px);
+    transform: translateY(-15px);
   }
   to {
     opacity: 1;
@@ -784,169 +792,273 @@ main {
   }
 }
 
-.close {
+.close-button {
   position: absolute;
-  right: 1.5rem;
-  top: 1.5rem;
-  font-size: 1.8rem;
-  cursor: pointer;
+  top: 15px;
+  right: 20px;
   color: white;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
   z-index: 10;
   opacity: 0.8;
-  transition: opacity var(--transition-speed);
+  transition: opacity 0.3s ease;
 }
 
-.close:hover {
+.close-button:hover {
   opacity: 1;
 }
 
-/* Movie Details */
+/* Movie Details View */
 .movie-details {
-  position: relative;
-  min-height: 300px;
-  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   overflow-y: auto;
 }
 
-.movie-details-backdrop {
+.backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 250px;
+  overflow: hidden;
+}
+
+.backdrop img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.backdrop-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-size: cover;
-  background-position: center;
-  opacity: 0.15;
-  filter: blur(10px) saturate(120%);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 0%,
+    var(--secondary-color) 100%
+  );
 }
 
 .movie-details-content {
   position: relative;
   z-index: 2;
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 3rem;
-  padding: 3rem;
+  display: flex;
+  padding: 30px;
+  gap: 40px;
+  margin-top: 150px;
 }
 
-.movie-details-poster {
+.movie-poster-container {
+  flex: 0 0 240px;
+}
+
+.movie-detail-poster {
   width: 100%;
   border-radius: var(--border-radius);
-  box-shadow: var(--card-shadow);
-  border: 2px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.movie-details-info {
+.movie-info-container {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  max-height: 600px;
-  overflow-y: auto;
 }
 
-.movie-details-title {
-  font-size: 2.5rem;
+.movie-info-container .movie-title {
+  font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin: 0 0 10px;
+  color: white;
+  letter-spacing: -0.5px;
 }
 
-.movie-details-tagline {
-  font-size: 1.2rem;
-  font-weight: 300;
-  color: var(--text-secondary);
-  margin-bottom: 1.5rem;
+.movie-info-container .movie-year {
+  font-weight: normal;
+  color: #9fa3a9;
+  font-size: 1.4rem;
 }
 
-.movie-details-meta {
+.movie-info-container .movie-meta {
   display: flex;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 20px;
+  margin-bottom: 20px;
+  color: var(--text-secondary);
   flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.movie-details-meta span {
+.movie-info-container .movie-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.movie-meta span {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--text-secondary);
-  line-height: 1.2;
+  gap: 7px;
+  font-size: 0.95rem;
 }
 
-.movie-details-meta span i {
-  width: 16px;
-  text-align: center;
+.movie-meta i {
   color: var(--accent-color);
 }
 
-.movie-details-rating {
+.movie-genres {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.genre-tag {
   background-color: rgba(255, 255, 255, 0.1);
-  padding: 0.8rem 1.5rem;
-  border-radius: 6px;
-  width: fit-content;
-  line-height: 1;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
 }
 
-.movie-details-rating i {
-  color: #ffd700;
-  margin-right: 0.2rem;
-  font-size: 1.1rem;
+.genre-tag:hover {
+  background-color: rgba(255, 255, 255, 0.18);
 }
 
-.movie-details-rating span {
-  font-weight: 600;
+.movie-overview {
+  color: var(--text-secondary);
+  margin-bottom: 30px;
+  line-height: 1.7;
+  font-size: 1rem;
 }
 
-.movie-details-overview {
-  line-height: 1.8;
-  margin-bottom: 2rem;
-  font-size: 1.05rem;
-  max-height: 250px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
+.clamp-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .movie-details-actions {
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+  gap: 15px;
   margin-top: auto;
+  margin-bottom: 10px;
+  padding-top: 20px;
 }
 
+/* Action Buttons */
 .action-btn {
-  padding: 0.9rem 1.5rem;
-  border-radius: 6px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  font-weight: 500;
+  gap: 10px;
+  transition: all 0.2s ease;
   font-size: 0.95rem;
-  transition: all 0.3s ease;
-  border: 1px solid transparent;
 }
 
 .action-btn.primary {
   background-color: var(--accent-color);
-  box-shadow: 0 6px 12px rgba(124, 93, 250, 0.2);
+  color: white;
+  box-shadow: 0 2px 4px rgba(124, 93, 250, 0.1);
+  transform: translateZ(0);
 }
 
 .action-btn.primary:hover {
   background-color: var(--accent-hover);
-  box-shadow: 0 8px 15px rgba(124, 93, 250, 0.3);
-  transform: translateY(-2px);
+  transform: none;
+  box-shadow: 0 2px 6px rgba(124, 93, 250, 0.15);
 }
 
 .action-btn.secondary {
   background-color: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transform: translateZ(0);
 }
 
 .action-btn.secondary:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+  background-color: rgba(255, 255, 255, 0.12);
+  transform: none;
+  box-shadow: none;
+}
+
+/* Recommendations View */
+.recommendations-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding: 30px;
+}
+
+.recommendations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 15px;
+}
+
+.recommendations-header h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.recommendations-grid {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.movie-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-gap: 30px;
+}
+
+.recommendation-card {
+  height: 100%;
+  cursor: pointer;
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out;
+  background-color: var(--secondary-color);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.recommendation-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 10px rgba(124, 93, 250, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.loading-indicator,
+.error-message,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+  color: var(--text-secondary);
 }
 
 /* Footer */
@@ -1114,6 +1226,8 @@ footer {
   max-width: 700px;
   margin: 0 auto 2rem;
   padding-top: 1rem;
+  transition: all 0.3s ease;
+  animation: slideDown 0.3s ease-out forwards;
 }
 
 #searchResults {
@@ -1266,4 +1380,277 @@ footer {
 .page-btn:last-child {
   background-color: rgba(255, 255, 255, 0.08);
   font-size: 0.8rem;
+}
+
+/* Add director style */
+.movie-details-director {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+.movie-details-director strong {
+  color: var(--text-color);
+}
+
+/* Add a fade-in animation for elements */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Recommendations section styles */
+.recommendations-section {
+  margin-top: 2rem;
+}
+.recommendations-section h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: var(--accent-color);
+}
+.recommendations-section .movie-grid {
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .movie-details-content {
+    flex-direction: column;
+    margin-top: 120px;
+    padding: 20px;
+  }
+
+  .movie-poster-container {
+    align-self: center;
+    flex: 0 0 200px;
+    max-width: 220px;
+    margin-bottom: 20px;
+  }
+
+  .movie-title {
+    font-size: 1.8rem;
+  }
+
+  .recommendations-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .movie-cards {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .recommendations-view {
+    padding: 20px;
+  }
+
+  .movie-meta {
+    gap: 15px;
+  }
+
+  .movie-details-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    width: 95%;
+    height: 90vh;
+  }
+
+  .movie-cards {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+  }
+
+  .movie-title {
+    font-size: 1.5rem;
+  }
+}
+
+/* Fix star color to be consistently yellow everywhere */
+.movie-meta i.fas.fa-star,
+.movie-info-container .movie-meta i.fas.fa-star,
+i.fa-star {
+  color: #e6b800 !important;
+  text-shadow: 0 0 4px rgba(230, 184, 0, 0.2);
+}
+
+/* Improve vertical alignment for movie details */
+.movie-info-container .movie-meta {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.movie-info-container .movie-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+/* Improve performance and smoothness */
+.movie-card {
+  will-change: transform;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.movie-poster {
+  will-change: transform;
+  transition: transform 0.3s ease-out, filter 0.3s ease-out;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.modal-content {
+  will-change: transform, opacity;
+  animation: modalFadeIn 0.25s ease-out;
+}
+
+/* Loading state for movie details */
+.movie-details.loading {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+/* Improve general performance */
+html {
+  scroll-behavior: smooth;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Recommendation card transitions */
+.recommendation-card {
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out;
+}
+
+/* Fix modal appearance and performance */
+.modal {
+  display: flex;
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  backdrop-filter: blur(5px);
+  will-change: opacity;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Loading overlay for movie details */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  backdrop-filter: blur(3px);
+}
+
+.movie-details.loading {
+  position: relative;
+}
+
+/* Improve performance of animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Optimize spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* More efficient box-shadows for better performance */
+.action-btn.primary {
+  background-color: var(--accent-color);
+  color: white;
+  box-shadow: 0 2px 4px rgba(124, 93, 250, 0.1);
+  transform: translateZ(0);
+}
+
+.action-btn.secondary {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-color);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transform: translateZ(0);
+}
+
+/* Fix vertical alignment issue with movie meta data */
+.movie-meta,
+.movie-info-container .movie-meta,
+.movie-genres,
+.movie-info-container .movie-genres,
+.movie-overview {
+  display: flex;
+  align-items: center;
+}
+
+/* Improve movie description alignment */
+.movie-overview.clamp-text {
+  margin-top: 5px;
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+/* Ensure buttons align properly */
+.movie-details-actions {
+  margin-top: auto;
+  padding-top: 20px;
+  display: flex;
+  gap: 15px;
 }
