@@ -66,14 +66,6 @@ async def get_tmdb_recommendations(movie_id: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching recommendations: {str(e)}")
 
-@router.get("/{movie_id}/credits", response_model=Dict[str, Any])
-async def get_movie_credits_route(movie_id: int):
-    """Get movie credits (cast & crew) from TMDB."""
-    try:
-        return await tmdb_client.get_movie_credits(movie_id)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching movie credits: {str(e)}")
-
 @router.get("/recommendations/{user_id}", response_model=List[Dict[str, Any]])
 async def get_user_recommendations(user_id: str):
     """Get personalized movie recommendations for a user."""

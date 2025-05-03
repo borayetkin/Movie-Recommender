@@ -35,11 +35,7 @@
         </div>
       </header>
 
-      <div v-if="isInitialLoading" class="spinner-container">
-        <div class="spinner"></div>
-      </div>
-
-      <main v-if="!isInitialLoading">
+      <main>
         <section
           class="hero-section"
           :style="heroBackgroundStyle"
@@ -189,157 +185,70 @@
         </section>
       </main>
 
-      <div class="modal" v-if="selectedMovie" @click.self="closeModal">
+      <div
+        id="movieModal"
+        class="modal"
+        :class="{ active: selectedMovie }"
+        v-if="selectedMovie"
+        @click.self="closeModal"
+      >
         <div class="modal-content">
-          <span
-            v-if="!showingRecommendationsView"
-            class="close-button"
-            @click="closeModal"
-            >&times;</span
-          >
-
-          <!-- Recommendation View -->
-          <div v-if="showingRecommendationsView" class="recommendations-view">
-            <div class="recommendations-header">
-              <h2>Movies Similar to "{{ selectedMovie.title }}"</h2>
-              <button class="action-btn secondary" @click="showDetailsView">
-                <i class="fas fa-arrow-left"></i> Back to Movie
-              </button>
-            </div>
-
-            <div class="recommendations-grid">
-              <div v-if="isRecommendationsLoading" class="loading-indicator">
-                <div class="spinner"></div>
-                <p>Loading recommendations...</p>
-              </div>
-
-              <div v-else-if="recommendationsError" class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <p>Sorry, we couldn't load recommendations at this time.</p>
-              </div>
-
-              <div
-                v-else-if="movieRecommendations.length === 0"
-                class="empty-state"
-              >
-                <i
-                  class="fas fa-film"
-                  style="font-size: 3rem; opacity: 0.3"
-                ></i>
-                <p>No similar movies found.</p>
-              </div>
-
-              <div v-else class="movie-cards">
-                <div
-                  v-for="movie in movieRecommendations"
-                  :key="movie.id"
-                  class="movie-card recommendation-card"
-                  @click="showMovieDetails(movie.id)"
-                >
-                  <div class="poster-container">
-                    <img
-                      :src="movie.poster_url || `https://image.tmdb.org/t/p/w500${movie.poster_path}`"
-                      :alt="movie.title"
-                      class="movie-poster"
-                      loading="lazy"
-                      @error="handleImageError"
-                    />
-                    <div class="movie-info">
-                      <h3 class="movie-title">{{ movie.title }}</h3>
-                      <div class="movie-meta">
-                        <span class="movie-year"
-                          >{{ movie.release_date ?
-                          movie.release_date.substring(0, 4) : 'N/A' }}</span
-                        >
-                        <span class="movie-rating">
-                          <i class="fas fa-star"></i> {{
-                          formatRating(movie.vote_average) }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <span class="close" @click="closeModal">&times;</span>
+          <div v-if="isMovieDetailsLoading" class="spinner-container">
+            <div class="spinner"></div>
           </div>
-
-          <!-- Movie Details View -->
-          <div
-            v-else
-            class="movie-details"
-            :class="{ 'loading': isMovieDetailsLoading }"
-          >
-            <div v-if="isMovieDetailsLoading" class="loading-overlay">
-              <div class="spinner"></div>
-            </div>
-
-            <div class="backdrop" v-if="selectedMovie.backdrop_url">
-              <img
-                :src="selectedMovie.backdrop_url"
-                alt="Backdrop"
-                loading="lazy"
-              />
-              <div class="backdrop-overlay"></div>
-            </div>
-
+          <div v-else-if="movieDetailsError" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>Error loading movie details</p>
+          </div>
+          <div v-else class="movie-details">
+            <div
+              class="movie-details-backdrop"
+              :style="selectedMovieBackdrop"
+            ></div>
             <div class="movie-details-content">
-              <div class="movie-poster-container">
-                <img
-                  :src="selectedMoviePoster"
-                  :alt="selectedMovie.title"
-                  class="movie-detail-poster"
-                  loading="lazy"
-                  @error="handleImageError"
-                />
-              </div>
+              <img
+                :src="selectedMoviePoster"
+                :alt="selectedMovie.title"
+                class="movie-details-poster"
+                @error="handleImageError"
+              />
+              <div class="movie-details-info">
+                <h1 class="movie-details-title">{{ selectedMovie.title }}</h1>
+                <p class="movie-details-tagline">
+                  {{ selectedMovie.tagline || '' }}
+                </p>
 
-              <div class="movie-info-container">
-                <h2 class="movie-title">
-                  {{ selectedMovie.title }}
-                  <span class="movie-year" v-if="selectedMovie.release_date">
-                    {{ selectedMovie.release_date.substring(0, 4) }}
-                  </span>
-                </h2>
-
-                <div class="movie-meta">
-                  <span class="movie-director" v-if="selectedMovie.director">
-                    <i class="fas fa-video"></i> {{ selectedMovie.director }}
-                  </span>
-                  <span class="movie-runtime" v-if="selectedMovie.runtime">
-                    <i class="fas fa-clock"></i> {{ selectedMovie.runtime }} min
-                  </span>
-                  <span class="movie-rating">
-                    <i class="fas fa-star"></i> {{
-                    formatRating(selectedMovie.vote_average) }}
-                  </span>
+                <div class="movie-details-rating">
+                  <i class="fas fa-star"></i>
+                  <span>{{ formatRating(selectedMovie.vote_average) }}</span>
                 </div>
 
-                <div
-                  class="movie-genres"
-                  v-if="selectedMovie.genres && selectedMovie.genres.length"
-                >
+                <div class="movie-details-meta">
                   <span
-                    v-for="genre in selectedMovie.genres"
-                    :key="genre.id"
-                    class="genre-tag"
+                    ><i class="far fa-calendar-alt"></i> {{
+                    formatDate(selectedMovie.release_date) }}</span
                   >
-                    {{ genre.name }}
-                  </span>
+                  <span
+                    ><i class="fas fa-clock"></i> {{ selectedMovie.runtime ||
+                    '?' }} min</span
+                  >
+                  <span
+                    ><i class="fas fa-film"></i> {{
+                    formatGenres(selectedMovie.genres) }}</span
+                  >
                 </div>
 
-                <p class="movie-overview clamp-text">
+                <p class="movie-details-overview">
                   {{ selectedMovie.overview || 'No overview available.' }}
                 </p>
 
                 <div class="movie-details-actions">
+                  <button class="action-btn primary">
+                    <i class="fas fa-play"></i> Watch Trailer
+                  </button>
                   <button class="action-btn secondary">
                     <i class="fas fa-plus"></i> Add to Watchlist
-                  </button>
-                  <button
-                    class="action-btn primary"
-                    @click="showRecommendations(selectedMovie.id)"
-                  >
-                    <i class="fas fa-thumbs-up"></i> Suggest Similar
                   </button>
                 </div>
               </div>

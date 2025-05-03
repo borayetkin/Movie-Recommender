@@ -3,8 +3,6 @@ import {
   fetchPopularMovies,
   searchMovies,
   getMovieDetails,
-  getMovieCredits,
-  getMovieRecommendations,
 } from "/static/services/api.js";
 import {
   formatRating,
@@ -33,13 +31,11 @@ const app = Vue.createApp({
       isDarkTheme: true,
       heroBackgroundUrl: "",
       totalPages: 10,
-      showingRecommendationsView: false,
 
       // Movies data
       popularMovies: [],
       recommendedMovies: [],
       searchResults: [],
-      movieRecommendations: [],
 
       // UI state
       searchQuery: "",
@@ -47,19 +43,14 @@ const app = Vue.createApp({
       isSearchLoading: false,
       isRecommendationsLoading: false,
       loadingError: false,
-      recommendationsError: false,
 
       // Search debounce
       searchTimeout: null,
-
-      // Add a cache for movie details
-      movieDetailsCache: {},
 
       // Modal and selected movie
       selectedMovie: null,
       isMovieDetailsLoading: false,
       movieDetailsError: false,
-      isInitialLoading: false,
     };
   },
   computed: {
@@ -153,24 +144,11 @@ const app = Vue.createApp({
 
       return pages;
     },
-    directors() {
-      if (!this.selectedMovie || !this.selectedMovie.credits) {
-        return "";
-      }
-      const crew = this.selectedMovie.credits.crew || [];
-      const directors = crew.filter((member) => member.job === "Director");
-      return directors.map((d) => d.name).join(", ");
-    },
   },
-  async mounted() {
-    this.isInitialLoading = true;
-    try {
-      await this.loadPopularMovies();
-      await this.setHeroBackground();
-    } finally {
-      this.isInitialLoading = false;
-      this.setupSearchWatcher();
-    }
+  mounted() {
+    this.loadPopularMovies();
+    this.setHeroBackground();
+    this.setupSearchWatcher();
   },
   methods: {
     // Format utilities
@@ -180,15 +158,6 @@ const app = Vue.createApp({
 
     // Data loading methods
     async loadPopularMovies() {
-      // Add transition class to movie grid if it exists
-      const movieGrid = document.querySelector(".movie-grid");
-      if (movieGrid) {
-        movieGrid.style.opacity = "0";
-        setTimeout(() => {
-          movieGrid.style.opacity = "1";
-        }, 100);
-      }
-
       this.isLoadingMore = true;
       this.loadingError = false;
 
@@ -231,23 +200,14 @@ const app = Vue.createApp({
       }
 
       this.isSearchLoading = true;
-      // Apply searching class to the search container for animation
-      const heroSearchContainer = document.querySelector(
-        ".hero-section .search-container"
-      );
-      if (heroSearchContainer) {
-        heroSearchContainer.classList.add("searching");
-      }
-
       this.showSearchResults = true;
 
       // Scroll to search results if we're submitting via button or enter key
       setTimeout(() => {
-        // Add smooth transition to search results
         document
           .getElementById("searchResults")
           .scrollIntoView({ behavior: "smooth" });
-      }, 300);
+      }, 100);
 
       try {
         this.searchResults = await searchMovies(query);
@@ -256,110 +216,33 @@ const app = Vue.createApp({
         this.searchResults = [];
       } finally {
         this.isSearchLoading = false;
-        // Remove searching class after loading
-        if (heroSearchContainer) {
-          heroSearchContainer.classList.remove("searching");
-        }
       }
     },
 
     async showMovieDetails(movieId) {
       try {
-        // Reset state first
-        const previousMovie = this.selectedMovie;
+        // First show the modal with loading state
         this.movieDetailsError = false;
         this.isMovieDetailsLoading = true;
-        this.showingRecommendationsView = false;
-
-        // If we're already viewing a movie, reset the selected movie first
-        // to avoid showing the previous movie while loading
-        if (previousMovie && previousMovie.id !== movieId) {
-          // Create a temporary clone with only essential info
-          this.selectedMovie = {
-            id: movieId,
-            title: "Loading...",
-            poster_url: null,
-            backdrop_url: null,
-          };
-        }
-
+        this.selectedMovie = {
+          id: movieId,
+          title: "Loading...",
+          poster_path: null,
+          backdrop_path: null,
+          poster_url: null,
+          backdrop_url: null,
+        };
         document.body.style.overflow = "hidden";
 
-        // Check if we have this movie in cache
-        if (this.movieDetailsCache[movieId]) {
-          this.selectedMovie = this.movieDetailsCache[movieId];
-          this.isMovieDetailsLoading = false;
-
-          // Pre-load recommendations without showing them
-          if (!this.showingRecommendationsView) {
-            this.loadMovieRecommendations(movieId);
-          }
-          return;
-        }
-
-        // Fetch details and credits in parallel
-        const [movieData, creditsData] = await Promise.all([
-          getMovieDetails(movieId),
-          getMovieCredits(movieId),
-        ]);
-        movieData.credits = creditsData;
-
-        // Extract director information
-        if (creditsData && creditsData.crew) {
-          const directors = creditsData.crew
-            .filter((person) => person.job === "Director")
-            .map((director) => director.name);
-
-          if (directors.length > 0) {
-            movieData.director = directors.join(", ");
-          }
-        }
-
-        this.selectedMovie = movieData;
-        // Cache the movie details for future use
-        this.movieDetailsCache[movieId] = movieData;
-
-        // Pre-load recommendations without showing them
-        if (!this.showingRecommendationsView) {
-          this.loadMovieRecommendations(movieId);
-        }
-
         console.log("Loading movie details for ID:", movieId);
+
+        this.selectedMovie = await getMovieDetails(movieId);
       } catch (error) {
         console.error("Error loading movie details:", error);
         this.movieDetailsError = true;
       } finally {
         this.isMovieDetailsLoading = false;
       }
-    },
-
-    // Load item-based movie recommendations without switching view
-    async loadMovieRecommendations(movieId) {
-      this.isRecommendationsLoading = true;
-      this.recommendationsError = false;
-      try {
-        const recs = await getMovieRecommendations(movieId);
-        this.movieRecommendations = recs.slice(0, 4);
-      } catch (error) {
-        console.error("Error fetching item-based recommendations:", error);
-        this.recommendationsError = true;
-      } finally {
-        this.isRecommendationsLoading = false;
-      }
-    },
-
-    // Show the recommendations view
-    showRecommendations(movieId) {
-      // If we already have recommendations, just show them
-      if (this.movieRecommendations.length > 0) {
-        this.showingRecommendationsView = true;
-        return;
-      }
-
-      // Otherwise load and then show
-      this.loadMovieRecommendations(movieId).then(() => {
-        this.showingRecommendationsView = true;
-      });
     },
 
     // UI interaction methods
@@ -381,7 +264,6 @@ const app = Vue.createApp({
 
     closeModal() {
       this.selectedMovie = null;
-      this.showingRecommendationsView = false;
       document.body.style.overflow = "auto";
     },
 
@@ -463,10 +345,6 @@ const app = Vue.createApp({
           this.handleSearch();
         }, 300); // 300ms debounce
       });
-    },
-
-    showDetailsView() {
-      this.showingRecommendationsView = false;
     },
   },
 });
